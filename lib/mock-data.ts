@@ -1,0 +1,60 @@
+// lib/mock-data.ts
+import { Company } from "@/types";
+
+export const MOCK_COMPANIES: Company[] = [
+  {
+    id: "1",
+    name: "Nebula AI",
+    url: "https://openai.com", // Using real URLs for the scraper to actually work later
+    description: "Generative AI infrastructure for enterprise workflows.",
+    industry: "Artificial Intelligence",
+    location: "San Francisco, CA",
+    foundedYear: 2023,
+    stage: "Series A",
+    isEnriched: false,
+  },
+  {
+    id: "2",
+    name: "EcoFlow Dynamics",
+    url: "https://climatescape.org",
+    description: "Carbon capture and storage solutions for heavy industry.",
+    industry: "Climate Tech",
+    location: "Austin, TX",
+    foundedYear: 2022,
+    stage: "Seed",
+    isEnriched: false,
+  },
+  {
+    id: "3",
+    name: "Quantal Health",
+    url: "https://deepmind.google",
+    description: "Quantum computing applications for drug discovery.",
+    industry: "BioTech",
+    location: "Boston, MA",
+    foundedYear: 2024,
+    stage: "Seed",
+    isEnriched: false,
+  },
+  {
+    id: "4",
+    name: "CyberShield Ops",
+    url: "https://crowdstrike.com",
+    description: "Autonomous threat detection for cloud infrastructure.",
+    industry: "Cybersecurity",
+    location: "Tel Aviv, Israel",
+    foundedYear: 2021,
+    stage: "Series B",
+    isEnriched: false,
+  },
+  {
+    id: "5",
+    name: "Orbital Logistics",
+    url: "https://spacex.com",
+    description: "Last-mile delivery networks for low-earth orbit satellites.",
+    industry: "Space Tech",
+    location: "Los Angeles, CA",
+    foundedYear: 2020,
+    stage: "Growth",
+    isEnriched: false,
+  },
+];
