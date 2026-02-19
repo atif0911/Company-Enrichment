@@ -8,7 +8,9 @@ import { CompanyTable } from "@/components/company-table";
 import { Search, Filter } from "lucide-react";
 import { useStore } from "@/lib/store";
 
-export default function CompaniesPage() {
+import { Suspense } from "react";
+
+function CompaniesContent() {
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get("q") || "";
   
@@ -136,5 +138,13 @@ export default function CompaniesPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function CompaniesPage() {
+  return (
+    <Suspense fallback={<div className="p-8">Loading...</div>}>
+      <CompaniesContent />
+    </Suspense>
   );
 }
