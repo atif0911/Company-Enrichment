@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import { Company, EnrichmentData } from "@/types";
 
 // 1. Define the Shape of our Store
@@ -45,96 +46,167 @@ const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 // 3. The Provider Component
 export function StoreProvider({ children }: { children: React.ReactNode }) {
-  // Initialize state with defaults, but we will overwrite with localStorage in useEffect
+  const { data: session } = useSession();
   const [data, setData] = useState<UserData>(defaultState);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Load from LocalStorage on mount (Client-side only)
+  // Load data from API when session exists
   useEffect(() => {
-    const stored = localStorage.getItem("vc-scout-store");
-    if (stored) {
-      try {
-        setData(JSON.parse(stored));
-      } catch (e) {
-        console.error("Failed to parse local storage", e);
-      }
+    if (session?.user) {
+      const fetchData = async () => {
+        try {
+          const [listsRes, searchesRes] = await Promise.all([
+             fetch("/api/user/lists"),
+             fetch("/api/user/searches")
+          ]);
+          
+          if (listsRes.ok && searchesRes.ok) {
+              const lists = await listsRes.json();
+              const searches = await searchesRes.json();
+              
+              // Normalize lists for store
+              const formattedLists = lists.map((l: any) => ({
+                  id: l._id,
+                  name: l.name,
+                  companyIds: l.companyIds || []
+              }));
+              
+              const formattedSearches = searches.map((s: any) => s.query);
+
+              setData(prev => ({
+                  ...prev,
+                  lists: formattedLists,
+                  savedSearches: formattedSearches
+              }));
+          }
+        } catch (e) {
+            console.error("Failed to fetch user data", e);
+        }
+        setIsInitialized(true);
+      };
+      fetchData();
+    } else {
+        // Reset or use local storage for guest? For now reset.
+        setData(defaultState);
+        setIsInitialized(true);
     }
-    setIsInitialized(true);
-  }, []);
+  }, [session]);
 
-  // Save to LocalStorage whenever data changes
-  useEffect(() => {
-    if (isInitialized) {
-      localStorage.setItem("vc-scout-store", JSON.stringify(data));
-    }
-  }, [data, isInitialized]);
-
-  // --- Actions ---
-
-  const createList = (name: string) => {
-    const newList: List = {
-      id: crypto.randomUUID(), // Native browser UUID generation
-      name,
-      companyIds: [],
-    };
+  const createList = async (name: string) => {
+    // Optimistic update
+    const tempId = crypto.randomUUID();
+    const newList: List = { id: tempId, name, companyIds: [] };
     setData((prev) => ({ ...prev, lists: [...prev.lists, newList] }));
+
+    if (session?.user) {
+        try {
+            const res = await fetch("/api/user/lists", {
+                method: "POST",
+                body: JSON.stringify({ name }),
+            });
+            if (res.ok) {
+                const created = await res.json();
+                // Update ID from temp to real
+                setData(prev => ({
+                    ...prev,
+                    lists: prev.lists.map(l => l.id === tempId ? { ...l, id: created._id } : l)
+                }));
+            }
+        } catch (e) { console.error("API Error", e); }
+    }
   };
 
-  const deleteList = (id: string) => {
+  const deleteList = async (id: string) => {
     setData((prev) => ({
       ...prev,
       lists: prev.lists.filter((l) => l.id !== id),
     }));
+
+    if (session?.user) {
+         await fetch(`/api/user/lists?id=${id}`, { method: "DELETE" });
+    }
   };
 
-  const addCompanyToList = (listId: string, companyId: string) => {
+  const addCompanyToList = async (listId: string, companyId: string) => {
+    let updatedList: List | undefined;
+    
     setData((prev) => ({
       ...prev,
       lists: prev.lists.map((list) => {
         if (list.id === listId && !list.companyIds.includes(companyId)) {
-          return { ...list, companyIds: [...list.companyIds, companyId] };
+          updatedList = { ...list, companyIds: [...list.companyIds, companyId] };
+          return updatedList;
         }
         return list;
       }),
     }));
+
+    if (session?.user && updatedList) {
+        await fetch("/api/user/lists", {
+            method: "PUT",
+            body: JSON.stringify({ id: listId, companyIds: updatedList.companyIds })
+        });
+    }
   };
 
-  const removeCompanyFromList = (listId: string, companyId: string) => {
+  const removeCompanyFromList = async (listId: string, companyId: string) => {
+    let updatedList: List | undefined;
+    
     setData((prev) => ({
       ...prev,
       lists: prev.lists.map((list) => {
         if (list.id === listId) {
-          return {
+           updatedList = {
             ...list,
             companyIds: list.companyIds.filter((id) => id !== companyId),
           };
+          return updatedList;
         }
         return list;
       }),
     }));
+
+     if (session?.user && updatedList) {
+        await fetch("/api/user/lists", {
+            method: "PUT",
+            body: JSON.stringify({ id: listId, companyIds: updatedList.companyIds })
+        });
+    }
   };
 
   const updateNote = (companyId: string, content: string) => {
+    // TODO: Implement Note API
     setData((prev) => ({
       ...prev,
       notes: { ...prev.notes, [companyId]: content },
     }));
   };
 
-  const saveSearch = (query: string) => {
+  const saveSearch = async (query: string) => {
     if (!data.savedSearches.includes(query)) {
       setData((prev) => ({
         ...prev,
         savedSearches: [query, ...prev.savedSearches],
       }));
+      
+      if (session?.user) {
+          await fetch("/api/user/searches", {
+              method: "POST",
+              body: JSON.stringify({ query })
+          });
+      }
     }
   };
 
-  const removeSearch = (query: string) => {
+  const removeSearch = async (query: string) => {
     setData((prev) => ({
       ...prev,
       savedSearches: prev.savedSearches.filter((s) => s !== query),
     }));
+    
+    if (session?.user) {
+         await fetch(`/api/user/searches?query=${encodeURIComponent(query)}`, { method: "DELETE" });
+    }
   };
 
   const cacheEnrichmentData = (companyId: string, enrichmentData: EnrichmentData) => {

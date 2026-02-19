@@ -3,6 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import {
   LayoutDashboard,
   Building2,
@@ -10,6 +11,7 @@ import {
   Bookmark,
   Settings,
   Search,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +24,7 @@ const navigation = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { data: session } = useSession();
 
   return (
     <div className="flex h-full w-64 flex-col bg-slate-900 text-white border-r border-slate-800">
@@ -61,16 +64,37 @@ export function Sidebar() {
 
       {/* User / Bottom Section */}
       <div className="border-t border-slate-800 p-4">
-        <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center font-bold text-xs">
-            AS
-          </div>
-          <div className="text-xs">
-            <p className="font-medium text-white">Atif Sardar</p>
-            <p className="text-slate-500">Heritage Fund</p>
-          </div>
-          <Settings className="ml-auto h-4 w-4 text-slate-500 cursor-pointer hover:text-white" />
-        </div>
+        {session?.user ? (
+            <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center font-bold text-xs overflow-hidden">
+                {session.user.image ? (
+                    <img src={session.user.image} alt={session.user.name || "User"} className="h-full w-full object-cover" />
+                ) : (
+                    session.user.name?.charAt(0) || "U"
+                )}
+            </div>
+            <div className="text-xs flex-1 overflow-hidden">
+                <p className="font-medium text-white truncate">{session.user.name}</p>
+                <p className="text-slate-500 truncate">{session.user.email}</p>
+            </div>
+            <button 
+                onClick={() => signOut()}
+                className="ml-auto text-slate-500 hover:text-white"
+                title="Sign Out"
+            >
+                <LogOut className="h-4 w-4" />
+            </button>
+            </div>
+        ) : (
+             <div className="flex flex-col gap-2">
+                <Link 
+                    href="/login"
+                    className="flex w-full justify-center rounded-md bg-slate-800 px-3 py-1.5 text-xs font-semibold leading-6 text-white shadow-sm hover:bg-slate-700"
+                >
+                    Sign In
+                </Link>
+            </div>
+        )}
       </div>
     </div>
   );

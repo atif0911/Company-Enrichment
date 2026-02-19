@@ -12,6 +12,8 @@ export const metadata: Metadata = {
   description: "AI-powered sourcing for Venture Capital",
 };
 
+import { SessionProvider } from "next-auth/react";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -20,9 +22,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} bg-slate-50 text-slate-900`}>
-        <StoreProvider>
-          <AppLayout>{children}</AppLayout>
-        </StoreProvider>
+        <SessionProvider>
+            <StoreProvider>
+              <AppLayout>{children}</AppLayout>
+            </StoreProvider>
+        </SessionProvider>
       </body>
     </html>
   );
