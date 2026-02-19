@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { Company } from "@/types";
+import { Company, EnrichmentData } from "@/types";
 
 // 1. Define the Shape of our Store
 interface List {
@@ -14,6 +14,7 @@ interface UserData {
   lists: List[];
   notes: Record<string, string>; // Map companyId -> note content
   savedSearches: string[];
+  enrichedData: Record<string, EnrichmentData>; // Map companyId -> enriched data
 }
 
 interface StoreContextType extends UserData {
@@ -25,6 +26,7 @@ interface StoreContextType extends UserData {
   updateNote: (companyId: string, content: string) => void;
   saveSearch: (query: string) => void;
   removeSearch: (query: string) => void;
+  cacheEnrichmentData: (companyId: string, data: EnrichmentData) => void;
 }
 
 // 2. Default Initial State
@@ -33,8 +35,10 @@ const defaultState: UserData = {
     { id: "default-1", name: "My Watchlist", companyIds: [] },
     { id: "default-2", name: "High Priority", companyIds: [] },
   ],
+
   notes: {},
   savedSearches: [],
+  enrichedData: {},
 };
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -133,6 +137,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }));
   };
 
+  const cacheEnrichmentData = (companyId: string, enrichmentData: EnrichmentData) => {
+    setData((prev) => ({
+      ...prev,
+      enrichedData: { ...prev.enrichedData, [companyId]: enrichmentData },
+    }));
+  };
+
   return (
     <StoreContext.Provider
       value={{
@@ -144,6 +155,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         updateNote,
         saveSearch,
         removeSearch,
+        cacheEnrichmentData,
       }}
     >
       {children}

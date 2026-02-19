@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# VC Scout - Company Enrichment Platform
+
+A powerful intelligence interface for Venture Capitalists to source, track, and enrich company data using AI.
+
+## Features
+
+-   **Company Discovery**: Browse and filter companies by stage, industry, and name.
+-   **Live Enrichment**: Real-time website scraping and AI analysis using **Firecrawl** and **Gemini 2.0 Flash**.
+    -   Extracts summary, "what they do", keywords, and derived signals (e.g., "Hiring aggressively").
+-   **List Management**:
+    -   Create custom lists (e.g., "Watchlist", "High Priority").
+    -   Add companies to lists directly from their profile.
+    -   Export lists to JSON.
+-   **Saved Searches**: Save complex search queries for quick access.
+-   **Data Persistence**: All data (lists, notes, enriched data) is persisted locally, so you never lose your work.
+
+## specific Tech Stack
+
+-   **Framework**: Next.js 14+ (App Router)
+-   **Styling**: Tailwind CSS
+-   **State Management**: React Context + LocalStorage
+-   **AI & Scraping**:
+    -   [Firecrawl](https://firecrawl.dev) for turning websites into Markdown.
+    -   [Google Gemini](https://ai.google.dev) for structured data extraction.
 
 ## Getting Started
 
-First, run the development server:
+1.  **Clone the repository**:
+    ```bash
+    git clone <your-repo-url>
+    cd company-enrichment
+    ```
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+2.  **Install dependencies**:
+    ```bash
+    npm install
+    ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+3.  **Configure Environment Variables**:
+    Create a `.env.local` file in the root directory and add your API keys:
+    ```env
+    FIRECRAWL_API_KEY=fc_...
+    GEMINI_API_KEY=...
+    ```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+4.  **Run the development server**:
+    ```bash
+    npm run dev
+    ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+5.  **Open the app**:
+    Navigate to [http://localhost:3000](http://localhost:3000).
 
-## Learn More
+## Project Structure
 
-To learn more about Next.js, take a look at the following resources:
+-   `app/`: Next.js App Router pages and API routes.
+    -   `api/enrich/`: Serverless function for AI enrichment.
+    -   `companies/`: Main discovery and profile pages.
+    -   `lists/`: List management views.
+-   `components/`: Reusable UI components (Sidebar, CompanyTable).
+-   `lib/`: customizable utilities and global store (`store.tsx`).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Usage Tips
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+-   **Enrichment**: Go to a company profile and click "Live Enrich". Requires valid API keys.
+-   **Mock Data**: If API keys are missing, the app seamlessly falls back to mock data for demonstration purposes.

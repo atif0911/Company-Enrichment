@@ -19,7 +19,7 @@ import Link from "next/link";
 
 export default function CompanyProfile() {
   const params = useParams();
-  const { lists, addCompanyToList, notes, updateNote } = useStore();
+  const { lists, addCompanyToList, notes, updateNote, enrichedData: globalEnrichedData, cacheEnrichmentData } = useStore();
 
   const [company, setCompany] = useState(
     MOCK_COMPANIES.find((c) => c.id === params.id),
@@ -29,6 +29,15 @@ export default function CompanyProfile() {
   const [enrichmentData, setEnrichmentData] = useState<EnrichmentData | null>(
     null,
   );
+
+  // Check cache on load
+  useEffect(() => {
+    if (params.id && globalEnrichedData && globalEnrichedData[params.id as string]) {
+      setEnrichmentData(globalEnrichedData[params.id as string]);
+      // Also ensure local company state reflects isEnriched
+      setCompany(prev => prev ? { ...prev, isEnriched: true } : prev);
+    }
+  }, [params.id, globalEnrichedData]);
   const [noteInput, setNoteInput] = useState(notes[params.id as string] || "");
 
   // Handle the Live Enrichment API Call
@@ -47,6 +56,7 @@ export default function CompanyProfile() {
 
       const data = await response.json();
       setEnrichmentData(data);
+      cacheEnrichmentData(company.id, data);
 
       // Update local state to show it's enriched
       setCompany({ ...company, isEnriched: true });

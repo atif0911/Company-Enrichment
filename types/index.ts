@@ -17,7 +17,7 @@ export interface Company {
   industry: string;
   location: string;
   foundedYear: number;
-  stage: "Seed" | "Series A" | "Series B" | "Growth";
+  stage: "Pre-Seed" |"Seed" | "Series A" | "Series B" | "Growth";
   // Enriched State
   isEnriched: boolean;
   enrichment?: EnrichmentData;

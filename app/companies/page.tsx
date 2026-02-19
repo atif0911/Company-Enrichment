@@ -34,6 +34,21 @@ export default function CompaniesPage() {
     return matchesSearch && matchesStage;
   });
 
+  // Pagination
+  const ITEMS_PER_PAGE = 10;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, stageFilter]);
+
+  const totalPages = Math.ceil(filteredCompanies.length / ITEMS_PER_PAGE);
+  const paginatedCompanies = filteredCompanies.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
   return (
     <div className="p-8 max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-8">
@@ -79,6 +94,7 @@ export default function CompaniesPage() {
             className="appearance-none pl-10 pr-8 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
           >
             <option value="All">All Stages</option>
+            <option value="Pre-Seed">Pre-Seed</option>
             <option value="Seed">Seed</option>
             <option value="Series A">Series A</option>
             <option value="Series B">Series B</option>
@@ -89,7 +105,36 @@ export default function CompaniesPage() {
       </div>
 
       {/* Results Table */}
-      <CompanyTable companies={filteredCompanies} />
+      <CompanyTable companies={paginatedCompanies} />
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex justify-between items-center mt-6 border-t border-slate-200 pt-4">
+          <p className="text-sm text-slate-500">
+            Showing <span className="font-medium">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> to{" "}
+            <span className="font-medium">
+              {Math.min(currentPage * ITEMS_PER_PAGE, filteredCompanies.length)}
+            </span>{" "}
+            of <span className="font-medium">{filteredCompanies.length}</span> results
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1 border border-slate-300 rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1 border border-slate-300 rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
