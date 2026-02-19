@@ -210,19 +210,23 @@ export default function CompanyProfile() {
             </h3>
             <select
               className="w-full border border-slate-200 rounded-lg p-2 mb-3 text-sm"
+              value=""
               onChange={(e) => {
                 if (e.target.value) {
                   addCompanyToList(e.target.value, company.id);
-                  alert("Added to list!");
+                  alert(`Added ${company.name} to list!`);
                 }
               }}
             >
               <option value="">Select a list...</option>
-              {lists.map((list) => (
-                <option key={list.id} value={list.id}>
-                  {list.name}
-                </option>
-              ))}
+              {lists.map((list) => {
+                const isAlreadyInList = list.companyIds.includes(company.id);
+                return (
+                  <option key={list.id} value={list.id} disabled={isAlreadyInList}>
+                    {list.name} {isAlreadyInList ? "(Added)" : ""}
+                  </option>
+                );
+              })}
             </select>
           </div>
 
